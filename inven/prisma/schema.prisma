@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"        // generator baru (ESM-based)
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model JenisBarang {
+  id          String   @id
+  nama        String   @unique
+  deskripsi   String?  @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  barang      Barang[] @relation("BarangKategori")
+}
+
+model Pengguna {
+  id               String   @id @default(cuid())
+  nama             String
+  email            String   @unique
+  password         String
+  role             String   @default("User")
+  status           String   @default("Active")
+  tanggalBergabung DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sesi             Sesi[]
+}
+
+model Sesi {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  penggunaId String
+  pengguna   Pengguna @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+}
+
+model Barang {
+  id          String   @id
+  nama        String
+  kategoriId  String
+  kategori    JenisBarang @relation("BarangKategori", fields: [kategoriId], references: [id])
+  merek       String?
+  sku         String   @unique
+  kondisi     String   @default("BARU")
+  stok        Int      @default(0)
+  status      String   @default("TERSEDIA")
+  deskripsi   String?  @db.Text
+  lokasiRak   String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
